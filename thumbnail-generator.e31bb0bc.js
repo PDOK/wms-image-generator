@@ -73048,8 +73048,10 @@ function stripQueryParams(serviceUrl) {
 }
 
 function getWMSLayer(serviceUrl, serviceTitle, layers, styles) {
-  console.log(layers);
-  var layersParam = layers.join(",");
+  var layersReversed = layers.reverse();
+  var layersParam = layersReversed.join(",");
+  var stylesReversed = styles.reverse();
+  var stylesParam = stylesReversed.join(",");
   console.log(layersParam);
   var wmsSource = new _ImageWMS.default({
     crossOrigin: 'anonymous',
@@ -73057,7 +73059,7 @@ function getWMSLayer(serviceUrl, serviceTitle, layers, styles) {
     params: {
       LAYERS: layersParam,
       MAP_RESOLUTION: '96',
-      STYLES: styles
+      STYLES: stylesParam
     },
     ratio: 1,
     hidpi: false,
@@ -73066,6 +73068,7 @@ function getWMSLayer(serviceUrl, serviceTitle, layers, styles) {
   });
   return new _layer.Image({
     visible: true,
+    opacity: document.getElementById("opacitySlider").value / 100,
     source: wmsSource,
     // title: serviceTitle,
     crossOrigin: 'anonymous'
@@ -73133,8 +73136,13 @@ var brtPastelWmtsLayer = getBRTALayer('brtachtergrondkaartpastel');
 var brtWaterWmtsLayer = getBRTALayer('brtachtergrondkaartwater');
 var lufoLayer = getWmtsLayer('https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts', LUFO_ATTRIBUTION, 'Actueel_ortho25');
 brtGrijsWmtsLayer.set("visible", true);
+var top10Layers = ["gebouwvlak", "spoorbaandeellijn", "waterdeelvlak", "waterdeelvlakcontour", "terreinvlakcontour", "terreinvlak", "wegdeelvlak", "wegdeelvlakcontour"];
+var top10nlLayer = getWMSLayer('https://geodata.nationaalgeoregister.nl/top10nlv2/ows?', '', top10Layers, []);
+top10nlLayer.set("title", "Top10NL WMS"); // wegdeel_vlak_contour,wegdeel_vlak,terrein_vlak,terrein_vlak_contour,waterdeel_vlak_contour,waterdeel_vlak,spoorbaandeel_lijn,gebouw_vlak
+// https://geodata.nationaalgeoregister.nl/top10nlv2/ows?SERVICE=WMS&
+
 var map = new _ol.Map({
-  layers: [brtWaterWmtsLayer, brtPastelWmtsLayer, brtGrijsWmtsLayer, brtWmtsLayer, lufoLayer],
+  layers: [top10nlLayer, brtWaterWmtsLayer, brtPastelWmtsLayer, brtGrijsWmtsLayer, brtWmtsLayer, lufoLayer],
   target: document.getElementById("map"),
   view: new _ol.View({
     center: (0, _proj2.transform)([5.43, 52.18], "EPSG:4326", 'EPSG:28992'),
@@ -73174,7 +73182,7 @@ document.getElementById('export-png').addEventListener('click', function () {
       navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
     } else {
       var link = document.getElementById('image-download');
-      link.href = mapCanvas.toDataURL();
+      link.href = mapCanvas.toDataURL("image/png", 1);
       link.click();
     }
   });
@@ -73198,13 +73206,13 @@ function unpackLayers(capObj, result) {
 
 function urlChanged() {
   var getMapUrlEl = document.getElementById("GetMapUrl");
-  var capUrl = getMapUrlEl.value;
+  serviceUrl = getMapUrlEl.value;
   var parser = new _WMSCapabilities.default();
-  fetch(capUrl).then(function (response) {
+  fetch(serviceUrl).then(function (response) {
     return response.text();
   }).then(function (text) {
     var result = parser.read(text);
-    var serviceTitle = result["Service"]["Title"];
+    serviceTitle = result["Service"]["Title"];
     var layers = [];
     layers = unpackLayers(result.Capability, layers);
     var layerNames = [];
@@ -73214,6 +73222,10 @@ function urlChanged() {
     layers.forEach(function (x) {
       layerNames.push(x["Name"]);
       var row = document.createElement("tr");
+      row.setAttribute("draggable", "true");
+      row.classList.add("draggable");
+      row.addEventListener('dragover', dragOver);
+      row.addEventListener("dragstart", dragStart);
       var cell = document.createElement("td");
       var cellText = document.createTextNode(x["Name"]);
       var checkbox = document.createElement('input');
@@ -73244,7 +73256,7 @@ function urlChanged() {
       }
 
       selectList.addEventListener("change", function () {
-        switchLayer(capUrl, serviceTitle);
+        switchLayer(serviceUrl, serviceTitle);
       });
       cell3.appendChild(selectList);
       checkbox.type = "checkbox";
@@ -73252,7 +73264,7 @@ function urlChanged() {
       checkbox.classList.add("layerCheck");
       checkbox.setAttribute("layer", x["Name"]);
       checkbox.addEventListener("change", function () {
-        switchLayer(capUrl, serviceTitle);
+        switchLayer(serviceUrl, serviceTitle);
       });
       cell2.appendChild(checkbox);
       cell.appendChild(cellText);
@@ -73262,12 +73274,42 @@ function urlChanged() {
       tblBody.appendChild(row);
     });
     tbl.appendChild(tblBody);
-    switchLayer(capUrl, serviceTitle);
+    switchLayer(serviceUrl, serviceTitle);
   });
 }
 
+var serviceUrl;
+var serviceTitle;
 var getMapUrlEl = document.getElementById("GetMapUrl");
 getMapUrlEl.addEventListener('blur', urlChanged);
+var slEl = document.getElementById("opacitySlider");
+slEl.addEventListener("change", function (e) {
+  switchLayer(serviceUrl, serviceTitle);
+}); // slDiv.appe
+
+var _el;
+
+function dragOver(e) {
+  console.log("over");
+  var closestRow = e.target.closest("tr");
+  if (isBefore(_el, closestRow)) closestRow.parentNode.insertBefore(_el, closestRow);else closestRow.parentNode.insertBefore(_el, closestRow.nextSibling);
+  switchLayer(serviceUrl, serviceTitle);
+}
+
+function dragStart(e) {
+  console.log("start");
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", null); // Thanks to bqlou for their comment.
+
+  _el = e.target;
+}
+
+function isBefore(el1, el2) {
+  if (el2.parentNode === el1.parentNode) for (var cur = el1.previousSibling; cur && cur.nodeType !== 9; cur = cur.previousSibling) {
+    if (cur === el2) return true;
+  }
+  return false;
+}
 },{"ol/format/WMSCapabilities":"node_modules/ol/format/WMSCapabilities.js","ol":"node_modules/ol/index.js","ol/source/WMTS":"node_modules/ol/source/WMTS.js","ol/layer":"node_modules/ol/layer.js","ol/tilegrid/WMTS.js":"node_modules/ol/tilegrid/WMTS.js","ol/proj/proj4.js":"node_modules/ol/proj/proj4.js","ol/proj":"node_modules/ol/proj.js","ol/style":"node_modules/ol/style.js","proj4":"node_modules/proj4/lib/index.js","ol/proj/Projection":"node_modules/ol/proj/Projection.js","ol/extent.js":"node_modules/ol/extent.js","ol/source/ImageWMS":"node_modules/ol/source/ImageWMS.js","ol-layerswitcher":"node_modules/ol-layerswitcher/dist/ol-layerswitcher.js","ol/ol.css":"node_modules/ol/ol.css","ol-layerswitcher/src/ol-layerswitcher.css":"node_modules/ol-layerswitcher/src/ol-layerswitcher.css"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -73296,7 +73338,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "41613" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42021" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
