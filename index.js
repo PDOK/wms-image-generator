@@ -40,13 +40,15 @@ function stripQueryParams(serviceUrl) {
 }
 
 function getWMSLayer(serviceUrl, serviceTitle, layers, styles) {
-  console.log(layers)
-  let layersParam = layers.join(",")
+  let layersReversed = layers.reverse()
+  let layersParam = layersReversed.join(",")
+  let stylesReversed = styles.reverse()
+  let stylesParam = stylesReversed.join(",")
   console.log(layersParam)
   const wmsSource = new ImageWMS({
     crossOrigin: 'anonymous',
     url: stripQueryParams(serviceUrl),
-    params: { LAYERS: layersParam, MAP_RESOLUTION: '96', STYLES: styles },
+    params: { LAYERS: layersParam, MAP_RESOLUTION: '96', STYLES: stylesParam },
     ratio: 1,
     hidpi: false,
     serverType: 'mapserver',
@@ -54,11 +56,15 @@ function getWMSLayer(serviceUrl, serviceTitle, layers, styles) {
   })
   return new ImageLayer({
     visible: true,
+    opacity: document.getElementById("opacitySlider").value/100,
     source: wmsSource,
     // title: serviceTitle,
     crossOrigin: 'anonymous'
   })
 }
+
+
+
 
 
 function switchLayer(serviceUrl, serviceTitle) {
@@ -82,8 +88,6 @@ function switchLayer(serviceUrl, serviceTitle) {
       })
     }
   });
-  
-  
   currentLayer = getWMSLayer(serviceUrl, serviceTitle, layers, styles)
   map.addLayer(currentLayer)
   map.render()
@@ -124,8 +128,18 @@ const brtWaterWmtsLayer = getBRTALayer('brtachtergrondkaartwater')
 const lufoLayer = getWmtsLayer('https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts', LUFO_ATTRIBUTION, 'Actueel_ortho25')
 brtGrijsWmtsLayer.set("visible", true)
 
+const top10Layers = ["gebouwvlak","spoorbaandeellijn","waterdeelvlak","waterdeelvlakcontour","terreinvlakcontour","terreinvlak","wegdeelvlak","wegdeelvlakcontour"]
+const top10nlLayer = getWMSLayer('https://geodata.nationaalgeoregister.nl/top10nlv2/ows?', '', top10Layers, [])
+top10nlLayer.set("title", "Top10NL WMS")
+
+// wegdeel_vlak_contour,wegdeel_vlak,terrein_vlak,terrein_vlak_contour,waterdeel_vlak_contour,waterdeel_vlak,spoorbaandeel_lijn,gebouw_vlak
+
+// https://geodata.nationaalgeoregister.nl/top10nlv2/ows?SERVICE=WMS&
+
+
 const map = new Map({
   layers: [
+    top10nlLayer,
     brtWaterWmtsLayer,
     brtPastelWmtsLayer,
     brtGrijsWmtsLayer,
@@ -174,7 +188,7 @@ document.getElementById('export-png').addEventListener('click', function () {
       navigator.msSaveBlob(mapCanvas.msToBlob(), 'map.png');
     } else {
       var link = document.getElementById('image-download');
-      link.href = mapCanvas.toDataURL();
+      link.href = mapCanvas.toDataURL("image/png", 1);
       link.click();
     }
   });
@@ -197,14 +211,14 @@ function unpackLayers(capObj, result) {
 
 function urlChanged() {
   let getMapUrlEl = document.getElementById("GetMapUrl")
-  let capUrl = getMapUrlEl.value
+  serviceUrl = getMapUrlEl.value
 
   const parser = new WMSCapabilities()
-  fetch(capUrl).then(function (response) {
+  fetch(serviceUrl).then(function (response) {
     return response.text()
   }).then(function (text) {
     var result = parser.read(text)
-    let serviceTitle = result["Service"]["Title"]
+    serviceTitle = result["Service"]["Title"]
     let layers = []
     layers = unpackLayers(result.Capability, layers)
     let layerNames = []
@@ -216,6 +230,12 @@ function urlChanged() {
     layers.forEach(function (x) {
       layerNames.push(x["Name"])
       var row = document.createElement("tr")
+      row.setAttribute("draggable", "true")
+      row.classList.add("draggable")
+      
+      row.addEventListener('dragover', dragOver)
+      row.addEventListener("dragstart", dragStart)
+
       var cell = document.createElement("td")
       var cellText = document.createTextNode(x["Name"])
       var checkbox = document.createElement('input')
@@ -243,10 +263,8 @@ function urlChanged() {
         })}
 
         selectList.addEventListener("change", function () {
-          switchLayer(capUrl, serviceTitle)
+          switchLayer(serviceUrl, serviceTitle)
         })
-      
-          
 
       cell3.appendChild(selectList);
 
@@ -255,7 +273,7 @@ function urlChanged() {
       checkbox.classList.add("layerCheck")
       checkbox.setAttribute("layer", x["Name"])
       checkbox.addEventListener("change", function () {
-        switchLayer(capUrl, serviceTitle)
+        switchLayer(serviceUrl, serviceTitle)
       })
       cell2.appendChild(checkbox)
       cell.appendChild(cellText)
@@ -265,10 +283,47 @@ function urlChanged() {
       tblBody.appendChild(row)
     })
     tbl.appendChild(tblBody)
-    switchLayer(capUrl, serviceTitle)
+    switchLayer(serviceUrl, serviceTitle)
   })
-
 }
+
+var serviceUrl
+var serviceTitle
 
 var getMapUrlEl = document.getElementById("GetMapUrl")
 getMapUrlEl.addEventListener('blur', urlChanged)
+
+let slEl = document.getElementById("opacitySlider")
+slEl.addEventListener("change", function(e){
+  switchLayer(serviceUrl, serviceTitle)
+})
+    // slDiv.appe
+
+
+
+var _el
+function dragOver(e) {
+  console.log("over")
+  let closestRow = e.target.closest("tr")
+  if (isBefore(_el, closestRow))
+  closestRow.parentNode.insertBefore(_el, closestRow);
+  else
+  closestRow.parentNode.insertBefore(_el, closestRow.nextSibling)
+  switchLayer(serviceUrl, serviceTitle)
+}
+
+function dragStart(e) {
+  console.log("start")
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", null); // Thanks to bqlou for their comment.
+  _el = e.target;
+}
+
+function isBefore(el1, el2) {
+  if (el2.parentNode === el1.parentNode)
+    for (var cur = el1.previousSibling; cur && cur.nodeType !== 9; cur = cur.previousSibling)
+      if (cur === el2)
+        return true;
+  return false;
+}
+
