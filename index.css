@@ -7,9 +7,28 @@
     display: flex;
 }
     
-.column {
-    flex: 50%;
-    overflow: scroll;
+.column1 {
+    flex: 30%;
+    height:98vh;  
+    display: flex;
+    flex-flow: row wrap;
+
+}
+
+#downloadDiv{
+  height: 40px;
+  width: 100%;
+  align-self: flex-end;
+}
+#settings{
+  width:100%;
+}
+
+.column2 {
+  flex: 70%;
+  border-left: solid 1px#D3D3D3;
+  height:98vh;
+  padding-left:0.5em;
 }
 
 html{
@@ -77,3 +96,11 @@ a.btn:active {
       width:50%;
 
   }
+
+select.styleselect{
+  max-width:200px;
+}
+
+label{
+  margin-right:1em;
+}
