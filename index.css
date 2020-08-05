@@ -29,6 +29,7 @@
   border-left: solid 1px#D3D3D3;
   height:98vh;
   padding-left:0.5em;
+  overflow: scroll;
 }
 
 html{
