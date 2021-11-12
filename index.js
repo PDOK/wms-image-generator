@@ -110,14 +110,14 @@ function getWmtsLayer (serviceUrl, attribution, layername) {
 }
 
 function getBRTALayer (layername) {
-  return getWmtsLayer('https://geodata.nationaalgeoregister.nl/tiles/service/wmts', BRTA_ATTRIBUTION, layername)
+  return getWmtsLayer('https://service.pdok.nl/brt/achtergrondkaart/wmts/v2_0', BRTA_ATTRIBUTION, layername)
 }
 
-const brtWmtsLayer = getBRTALayer('brtachtergrondkaart')
-const brtGrijsWmtsLayer = getBRTALayer('brtachtergrondkaartgrijs')
-const brtPastelWmtsLayer = getBRTALayer('brtachtergrondkaartpastel')
-const brtWaterWmtsLayer = getBRTALayer('brtachtergrondkaartwater')
-const lufoLayer = getWmtsLayer('https://geodata.nationaalgeoregister.nl/luchtfoto/rgb/wmts', LUFO_ATTRIBUTION, 'Actueel_ortho25')
+const brtWmtsLayer = getBRTALayer('standaard')
+const brtGrijsWmtsLayer = getBRTALayer('grijs')
+const brtPastelWmtsLayer = getBRTALayer('pastel')
+const brtWaterWmtsLayer = getBRTALayer('water')
+const lufoLayer = getWmtsLayer('https://service.pdok.nl/hwh/luchtfotorgb/wmts/v1_0', LUFO_ATTRIBUTION, 'Actueel_ortho25')
 brtGrijsWmtsLayer.set('visible', true)
 
 const top10Layers = ['gebouwvlak', 'spoorbaandeellijn', 'waterdeelvlak', 'waterdeelvlakcontour', 'terreinvlakcontour', 'terreinvlak', 'wegdeelvlak', 'wegdeelvlakcontour']
