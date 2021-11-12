@@ -15,7 +15,6 @@ jobs:
 
       - name: Install and Build 🔧
         run: |
-          cd ahn3-downloadpage/
           npm install
           npm run-script build
 
