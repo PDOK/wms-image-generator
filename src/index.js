@@ -380,3 +380,4 @@ for (let i = 0; i < rad.length; i++) {
   })
 }
 document.getElementById('preset').checked = true
+SIZE_SELECT_EL.value = '500x500'
