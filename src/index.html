@@ -13,11 +13,24 @@
       <div id="settings">
         <div style="white-space:nowrap">
           <label for="sizeSelect">Image size</label>
-          <select id="sizeSelect" name="sizeSelect">
-            <option selected value="500x500">NGR Thumbnail (500x500)</option>
-            <option value="800x450">Website Image (800x450)</option>
-            <option value="1920x1080">Wallpaper Image (1920x1080)</option>
-          </select>
+
+          <div>
+          <input class="sizeRadio" type="radio" id="preset" name="sizeMode" value="preset"
+                checked>
+          <label for="preset">Preset</label>
+        </div>
+
+        <div>
+          <input class="sizeRadio" type="radio" id="custom" name="sizeMode" value="custom">
+          <label for="custom">Custom</label>
+        </div>
+
+        <input id="sizeInput" placeholder="image size for example 200x300 " style="display:none;width:15em;"> 
+        <select id="sizeSelect" name="sizeSelect">
+          <option selected value="500x500">NGR Thumbnail (500x500)</option>
+          <option value="800x450">Website Image (800x450)</option>
+          <option value="1920x1080">Wallpaper Image (1920x1080)</option>
+        </select>
         </div>
         <div>
           <label for="GetMapUrl">WMS GetCapabilities URL</label>
@@ -48,7 +61,7 @@
 
   </div>
 
-  <script src="./index.js"></script>
+  <script type="module" src="./index.js"></script>
 </body>
 
 </html>

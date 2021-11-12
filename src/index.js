@@ -126,12 +126,12 @@ const top10nlLayer = getWMSLayer('https://geodata.nationaalgeoregister.nl/top10n
 top10nlLayer.set('title', 'Top10NL WMS')
 top10nlLayer.set('visible', false)
 
-brtWmtsLayer.set("base", true)
-brtGrijsWmtsLayer.set("base", true)
-brtPastelWmtsLayer.set("base", true)
-brtWaterWmtsLayer.set("base", true)
-lufoLayer.set("base", true)
-top10nlLayer.set("base", true)
+brtWmtsLayer.set('base', true)
+brtGrijsWmtsLayer.set('base', true)
+brtPastelWmtsLayer.set('base', true)
+brtWaterWmtsLayer.set('base', true)
+lufoLayer.set('base', true)
+top10nlLayer.set('base', true)
 
 const MAP = new Map({
   layers: [
@@ -303,50 +303,80 @@ function isBefore (el1, el2) {
 }
 
 const SIZE_SELECT_EL = document.getElementById('sizeSelect')
+const SIZE_INPUT_EL = document.getElementById('sizeInput')
 
-SIZE_SELECT_EL.addEventListener('change', function (e) {
-  const x = e.target.value.split('x')[0]
-  const y = e.target.value.split('x')[1]
+function updateMapSize (sizeString) {
+  const x = sizeString.split('x')[0]
+  const y = sizeString.split('x')[1]
   const mapEl = document.getElementById('map')
   mapEl.style.width = `${x}px`
   mapEl.style.height = `${y}px`
   MAP.renderSync()
   MAP.updateSize()
+}
+
+SIZE_SELECT_EL.addEventListener('change', function (e) {
+  updateMapSize(e.target.value)
 })
 
+SIZE_INPUT_EL.addEventListener('blur', function (e) {
+  if (!e.target.value) {
+    return
+  }
+  const regex = /[0-9]+[x|X][0-9]+/g
+  console.log(e.target.value.match(regex))
+  if (!e.target.value.match(regex)) {
+    alert("size format should be '[0-9]+x[0-9]+' for instance 200x300")
+    return
+  }
+  updateMapSize(e.target.value.toLowerCase())
+})
 
-let grayscaleCheckbox = document.getElementById("grayscaleBaselayers")
+const grayscaleCheckbox = document.getElementById('grayscaleBaselayers')
 
-
-function postRender(evt){
-  evt.context.globalCompositeOperation = "color";
-  if (evt.context.globalCompositeOperation === "color") {
+function postRender (evt) {
+  evt.context.globalCompositeOperation = 'color'
+  if (evt.context.globalCompositeOperation === 'color') {
     // operation is supported by browser
-    evt.context.fillStyle = "rgba(255,255,255," + GRAYSCALE / 100 + ")";
+    evt.context.fillStyle = 'rgba(255,255,255,' + GRAYSCALE / 100 + ')'
     evt.context.fillRect(
       0,
       0,
       evt.context.canvas.width,
       evt.context.canvas.height
-    );
+    )
   }
-  evt.context.globalCompositeOperation = "source-over";
+  evt.context.globalCompositeOperation = 'source-over'
 }
 
-var GRAYSCALE = grayscaleCheckbox.checked === true ? 100:0
-grayscaleCheckbox.addEventListener("change", function(e){
-  GRAYSCALE =  e.target.checked === true ? 100 : 0
+var GRAYSCALE = grayscaleCheckbox.checked === true ? 100 : 0
+grayscaleCheckbox.addEventListener('change', function (e) {
+  GRAYSCALE = e.target.checked === true ? 100 : 0
   MAP.render()
 })
 
-
 MAP
-  .getLayers().forEach(function(lyr){
-    if (lyr.get("base")){
+  .getLayers().forEach(function (lyr) {
+    if (lyr.get('base')) {
       // see comment on this answer https://stackoverflow.com/a/59819793
-      lyr.on("postrender", postRender)
+      lyr.on('postrender', postRender)
     }
   }
-)
+  )
 
-  
+var rad = document.getElementsByClassName('sizeRadio')
+console.log(rad)
+for (let i = 0; i < rad.length; i++) {
+  rad[i].addEventListener('change', function () {
+    const input = document.getElementById('sizeInput')
+    const select = document.getElementById('sizeSelect')
+    if (this.value === 'preset') {
+      input.style.display = 'none'
+      select.style.display = 'block'
+    } else { // custom
+      input.style.display = 'block'
+      select.style.display = 'none'
+    }
+  })
+}
+document.getElementById('preset').checked = true
