@@ -83,7 +83,6 @@ function switchLayer (serviceUrl, serviceTitle) {
     }
   })
   currentLayer = getWMSLayer(serviceUrl, serviceTitle, layers, styles)
-  console.log(currentLayer)
   MAP.addLayer(currentLayer)
   MAP.render()
 }
@@ -211,7 +210,6 @@ function unpackLayers (capObj, result) {
 function urlChanged () {
   const getMapUrlEl = document.getElementById('GetMapUrl')
   SERVICE_URL = getMapUrlEl.value
-  console.log(SERVICE_URL)
   const parser = new WMSCapabilities()
   fetch(SERVICE_URL).then(function (response) {
     return response.text()
@@ -289,7 +287,6 @@ SL_EL.addEventListener('change', function (e) {
 })
 const C_EL = document.getElementById('mapBgColor')
 C_EL.addEventListener('change', function (e) {
-  console.log(e.target.value)
   document.getElementById("column2").style.backgroundColor = e.target.value
 })
 
@@ -338,7 +335,6 @@ SIZE_INPUT_EL.addEventListener('blur', function (e) {
     return
   }
   const regex = /[0-9]+[x|X][0-9]+/g
-  console.log(e.target.value.match(regex))
   if (!e.target.value.match(regex)) {
     alert("size format should be '[0-9]+x[0-9]+' for instance 200x300")
     return
@@ -379,7 +375,6 @@ MAP
   )
 
 var rad = document.getElementsByClassName('sizeRadio')
-console.log(rad)
 for (let i = 0; i < rad.length; i++) {
   rad[i].addEventListener('change', function () {
     const input = document.getElementById('sizeInput')
