@@ -35,7 +35,7 @@ for (var i = 0; i < 15; ++i) {
 
 function stripQueryParams (serviceUrl) {
   const urlObj = new URL(serviceUrl)
-  return `${urlObj.protocol}//${urlObj.host}:${urlObj.port}${urlObj.pathname}?`
+  return `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}?`
 }
 
 function getWMSLayer (serviceUrl, serviceTitle, layers, styles) {
@@ -54,8 +54,9 @@ function getWMSLayer (serviceUrl, serviceTitle, layers, styles) {
     projection: RDPROJECTION
   })
   return new ImageLayer({
+    title: serviceTitle,
     visible: true,
-    opacity: document.getElementById('opacitySlider').value / 100,
+    // opacity: document.getElementById('opacitySlider').value / 100,
     source: wmsSource,
     crossOrigin: 'anonymous'
   })
@@ -82,6 +83,7 @@ function switchLayer (serviceUrl, serviceTitle) {
     }
   })
   currentLayer = getWMSLayer(serviceUrl, serviceTitle, layers, styles)
+  console.log(currentLayer)
   MAP.addLayer(currentLayer)
   MAP.render()
 }
@@ -168,6 +170,11 @@ document.getElementById('export-png').addEventListener('click', function () {
         var opacity = canvas.parentNode.style.opacity
         mapContext.globalAlpha = opacity === '' ? 1 : Number(opacity)
         var transform = canvas.style.transform
+
+        mapContext.fillStyle = document.getElementById("mapBgColor").value
+        mapContext.fillRect(0,0,size[0],size[1])
+        mapContext.globalCompositeOperation='source-atop';
+
         // Get the transform parameters from the style's transform matrix
         var matrix = transform.match(/^matrix\(([^(]*)\)$/)[1].split(',').map(Number)
         // Apply the transform to the export map context
@@ -204,6 +211,7 @@ function unpackLayers (capObj, result) {
 function urlChanged () {
   const getMapUrlEl = document.getElementById('GetMapUrl')
   SERVICE_URL = getMapUrlEl.value
+  console.log(SERVICE_URL)
   const parser = new WMSCapabilities()
   fetch(SERVICE_URL).then(function (response) {
     return response.text()
@@ -279,6 +287,12 @@ const SL_EL = document.getElementById('opacitySlider')
 SL_EL.addEventListener('change', function (e) {
   switchLayer(SERVICE_URL, SERVICE_TITLE)
 })
+const C_EL = document.getElementById('mapBgColor')
+C_EL.addEventListener('change', function (e) {
+  console.log(e.target.value)
+  document.getElementById("column2").style.backgroundColor = e.target.value
+})
+
 
 var DRAG_EL
 function dragOver (e) {

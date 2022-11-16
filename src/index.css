@@ -1,6 +1,9 @@
+@import '../node_modules/ol-layerswitcher/dist/ol-layerswitcher.css';
+
 #map {
     height: 500px;
     width: 500px;
+    border: black dotted 1px;
 }
 
 .row {
@@ -169,7 +172,7 @@ li .group {
   display: none;
 }
 
-.ol-popup {
+/* .ol-popup {
   position        : absolute;
   background-color: white;
   box-shadow      : 0 1px 4px rgba(0, 0, 0, 0.2);
@@ -222,7 +225,7 @@ li .group {
   background-image   : url('./icons/icon.svg');
   background-size    : 32px 32px;
   background-position: unset;
-}
+} */
 
 #switchView2 {
   position: relative;
