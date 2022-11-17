@@ -56,7 +56,7 @@ function getWMSLayer (serviceUrl, serviceTitle, layers, styles) {
   return new ImageLayer({
     title: serviceTitle,
     visible: true,
-    // opacity: document.getElementById('opacitySlider').value / 100,
+    opacity: document.getElementById('opacitySlider').value / 100,
     source: wmsSource,
     crossOrigin: 'anonymous'
   })
