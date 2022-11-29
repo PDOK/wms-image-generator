@@ -1,3 +1,4 @@
-# thumbnail-generator
+# wms-image-generator
 
-Webapp to generate thumbnails from WMS services
+
+Webapp to generate images from WMS services.
