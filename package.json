@@ -19,7 +19,7 @@
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.0.1",
     "@parcel/transformer-webmanifest": "^2.0.1",
-    "cssnano": "^5.1.14",
+    "cssnano": "^6.0.0",
     "eslint": "^7.2.0",
     "eslint-config-standard": "^14.1.1",
     "eslint-plugin-import": "^2.21.2",
